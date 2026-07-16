@@ -1,0 +1,130 @@
+{
+  "mechanics": [
+    {
+      "id": "endless_runner",
+      "core": "one-button jump/duck, procedural obstacles, distance-based score",
+      "control": "tap to jump, tap+hold to duck",
+      "example_hits": "Chrome Dino, Subway Surfers, Temple Run",
+      "art_style_prompts": ["neon cyberpunk city", "pastel candy world", "pixel-art forest", "low-poly desert", "underwater ruins", "space station corridor"],
+      "session_length_sec": 90,
+      "difficulty_curve": "linear speed ramp"
+    },
+    {
+      "id": "one_tap_flapper",
+      "core": "gravity + one-button flap through obstacle gaps",
+      "control": "tap to flap",
+      "example_hits": "Flappy Bird, Jetpack Joyride lite",
+      "art_style_prompts": ["retro 8-bit", "cartoon animal", "steampunk airship", "origami paper", "ghost/halloween"],
+      "session_length_sec": 60,
+      "difficulty_curve": "gap-width shrink"
+    },
+    {
+      "id": "match3_puzzle",
+      "core": "swap adjacent tiles, match 3+, cascade combos, move-limited levels",
+      "control": "swipe/drag",
+      "example_hits": "Candy Crush lite, Bejeweled",
+      "art_style_prompts": ["gemstones", "fruit", "monster faces", "emoji", "runes"],
+      "session_length_sec": 180,
+      "difficulty_curve": "target-score per level"
+    },
+    {
+      "id": "brick_breaker",
+      "core": "paddle bounces ball to destroy bricks, powerups",
+      "control": "drag/swipe paddle",
+      "example_hits": "Breakout, Arkanoid, Ballz",
+      "art_style_prompts": ["neon retro", "brick-city skyline", "glass shatter", "candy blocks"],
+      "session_length_sec": 240,
+      "difficulty_curve": "brick density + ball speed"
+    },
+    {
+      "id": "snake_grow",
+      "core": "snake grows by eating, dies on wall/self collision, wraparound optional",
+      "control": "swipe/arrows, auto-forward",
+      "example_hits": "Snake.io, classic Snake",
+      "art_style_prompts": ["neon grid", "pastel", "food-themed (fruit snake)", "cyber worm"],
+      "session_length_sec": 120,
+      "difficulty_curve": "speed ramp + shrinking arena"
+    },
+    {
+      "id": "physics_puzzle",
+      "core": "aim + shoot projectile with gravity/physics, destroy targets in fewest shots",
+      "control": "drag-to-aim, release-to-fire",
+      "example_hits": "Angry Birds lite, Crush the Castle",
+      "art_style_prompts": ["cartoon animals", "medieval siege", "space-mining asteroids", "food-fight"],
+      "session_length_sec": 180,
+      "difficulty_curve": "shot budget per level"
+    },
+    {
+      "id": "merge_idle",
+      "core": "drag identical items to merge, higher tier = more revenue, buy more via passive income",
+      "control": "drag",
+      "example_hits": "2048, Merge Dragons lite",
+      "art_style_prompts": ["numbers minimal", "dragon eggs", "cars", "gems", "food items"],
+      "session_length_sec": 300,
+      "difficulty_curve": "tier-cost exponential"
+    },
+    {
+      "id": "reaction_tap",
+      "core": "colored targets appear, tap matching-color button before timeout",
+      "control": "tap colored buttons at bottom",
+      "example_hits": "Piano Tiles, Color Switch",
+      "art_style_prompts": ["neon", "keyboard/piano", "flag-colors trivia", "traffic light"],
+      "session_length_sec": 90,
+      "difficulty_curve": "spawn rate + color count"
+    },
+    {
+      "id": "bubble_shooter",
+      "core": "aim + shoot bubble to match 3+ colors, clear board in shot budget",
+      "control": "drag-aim, tap-fire",
+      "example_hits": "Bubble Shooter, Puzzle Bobble",
+      "art_style_prompts": ["fruit bubbles", "planet balls", "candy", "monster faces"],
+      "session_length_sec": 180,
+      "difficulty_curve": "color count + row descent speed"
+    },
+    {
+      "id": "stacker_tower",
+      "core": "moving block, tap to drop on stack, misalignment shrinks next block, build highest tower",
+      "control": "tap to drop",
+      "example_hits": "Stack, Tower Bloxx",
+      "art_style_prompts": ["neon geometric", "pixel-art city", "gradient minimal", "cartoon cake layers"],
+      "session_length_sec": 90,
+      "difficulty_curve": "block speed ramp"
+    }
+  ],
+  "themes": [
+    "cyberpunk neon", "kawaii pastel", "pixel art retro", "low-poly 3d-look",
+    "underwater aquatic", "space cosmos", "medieval fantasy", "post-apocalypse desert",
+    "candy sweet", "halloween spooky", "christmas festive", "beach summer",
+    "steampunk mechanical", "origami paper", "graffiti street", "vaporwave",
+    "african savanna", "japanese sakura", "viking norse", "egyptian pyramid",
+    "underwater coral", "arctic winter", "jungle temple", "sky floating islands"
+  ],
+  "naming_patterns": [
+    "{Adjective} {Noun}",
+    "{Verb}!",
+    "{Noun} {Verb}er",
+    "Super {Noun}",
+    "{Noun} Rush",
+    "Tiny {Noun}",
+    "{Emoji-word} Blast",
+    "{Color} {Noun}",
+    "{Noun}io",
+    "{Noun} Master"
+  ],
+  "monetization_config": {
+    "interstitial_min_interval_sec": 180,
+    "interstitial_triggers": ["game_over", "level_complete", "menu_return"],
+    "rewarded_triggers": ["revive_button", "double_coins_button", "unlock_skin_button"],
+    "no_ads_before_first_play": true,
+    "mute_on_ad_open": true
+  },
+  "quality_gates": {
+    "max_build_size_mb": 3,
+    "max_load_time_sec": 5,
+    "target_fps": 60,
+    "min_session_length_sec": 60,
+    "mobile_portrait_required": true,
+    "no_copyrighted_assets": true,
+    "no_ip_theft": true
+  }
+}
