@@ -1,0 +1,43 @@
+{
+  "crazygames": {
+    "platform_name": "crazygames",
+    "loader_script": "<script src=\"https://sdk.crazygames.com/crazygames-sdk-v3.js\"></script>",
+    "package_format": "zip",
+    "submit_url": "https://developer.crazygames.com/games/new",
+    "submit_mode": "manual_dashboard",
+    "notes": "Upload zip via dashboard, ~72h review. Requires: originality, working with adblocker, mobile+desktop compat, min viewport 320x480. Sitelock enforced by SDK."
+  },
+  "gamepix": {
+    "platform_name": "gamepix",
+    "loader_script": "<script src=\"https://integration.gamepix.com/sdk/v3/gamepix.sdk.js\"></script>",
+    "package_format": "zip",
+    "submit_url": "https://publisher.gamepix.com/games/new",
+    "submit_mode": "manual_dashboard",
+    "notes": "Manual upload. Slow review (2-4 weeks). Must call gameLoading + gameLoaded. Interstitials only via ping('game_over'|'level_complete')."
+  },
+  "playgama": {
+    "platform_name": "playgama",
+    "loader_script": "<script src=\"https://sdk.playgama.com/bridge/latest/bridge.js\"></script>",
+    "package_format": "zip + playgama-bridge-config.json",
+    "submit_url": "https://developer.playgama.com/games/new",
+    "submit_mode": "api_available",
+    "api_endpoint": "https://api.playgama.com/v1/games",
+    "notes": "One upload → CrazyGames+GD+Yandex+YouTube Playables+Xiaomi+more. API-based submission. Config JSON must include game_distribution.gameId if targeting GD network. 60s min interstitial interval enforced.",
+    "config_template": {
+      "playgama_bridge": {
+        "game_id": "{{GAME_ID}}",
+        "orientation": "portrait",
+        "platforms": ["playgama", "crazygames", "game_distribution", "yandex", "youtube_playables", "poki", "xiaomi"]
+      },
+      "game_distribution": { "gameId": "{{GD_GAME_ID}}" }
+    }
+  },
+  "gamedistribution": {
+    "platform_name": "gamedistribution",
+    "loader_script": "<script>window.GD_OPTIONS = { gameId: '{{GD_GAME_ID}}', onEvent: function(e){ window.gdsdk?.[e.name]?.(); } };</script><script src=\"https://html5.api.gamedistribution.com/main.min.js\"></script>",
+    "package_format": "zip",
+    "submit_url": "https://developer.gamedistribution.com/games/new",
+    "submit_mode": "manual_dashboard_or_playgama",
+    "notes": "Native submit auto-approves after 1 preroll view in iframe. OR use Playgama Bridge target instead (recommended)."
+  }
+}
