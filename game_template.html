@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#111111">
+<title>{{GAME_TITLE}}</title>
+<style>
+  html, body { margin: 0; padding: 0; overflow: hidden; background: {{BG_HEX}}; touch-action: none; user-select: none; -webkit-user-select: none; }
+  #game { display: block; width: 100vw; height: 100vh; }
+  #splash { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: {{BG_HEX}}; color: #fff; font-family: system-ui, sans-serif; z-index: 10; }
+  #splash .bar { width: 60vw; max-width: 400px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden; margin-top: 12px; }
+  #splash .bar > div { width: 0%; height: 100%; background: {{ACCENT_HEX}}; transition: width 0.2s; }
+</style>
+</head>
+<body>
+<div id="splash"><div>
+  <h1 style="margin:0;font-size:28px;">{{GAME_TITLE}}</h1>
+  <div class="bar"><div id="bar-fill"></div></div>
+</div></div>
+<canvas id="game"></canvas>
+
+<!-- PLATFORM LOADER — SUBSTITUTED PER BUILD ({{PLATFORM_LOADER_SCRIPT}}) -->
+{{PLATFORM_LOADER_SCRIPT}}
+<script>window.__PLATFORM__ = "{{PLATFORM_NAME}}";</script>
+
+<!-- Phaser 3 -->
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+
+<script type="module">
+// ========== PLATFORM ADAPTER (all 4 inline; picks by window.__PLATFORM__) ==========
+const NoopAdapter = {
+  async init(){}, loadingProgress(){}, loadingDone(){}, gameReady(){},
+  gameplayStart(){}, gameplayStop(){},
+  async interstitial(){}, async rewarded(){return false;},
+  async save(k,v){try{localStorage.setItem(k,v)}catch(e){}},
+  async load(k){try{return localStorage.getItem(k)}catch(e){return null}},
+  async submitScore(v){}, lang(){return 'en'}, happy(){}
+};
+
+const CrazyGamesAdapter = {
+  ...NoopAdapter,
+  async init(){
+    if (!window.CrazyGames?.SDK) return;
+    await window.CrazyGames.SDK.init();
+    this._env = window.CrazyGames.SDK.environment;
+  },
+  loadingDone(){ window.CrazyGames?.SDK?.game?.loadingStop?.(); },
+  gameReady(){ window.CrazyGames?.SDK?.game?.gameplayStart?.(); },
+  gameplayStart(){ window.CrazyGames?.SDK?.game?.gameplayStart?.(); },
+  gameplayStop(){ window.CrazyGames?.SDK?.game?.gameplayStop?.(); },
+  async interstitial(){
+    if (this._env === 'disabled') return;
+    window.muteGame?.(); window.pauseGame?.();
+    try{ await window.CrazyGames.SDK.ad.requestAd('midgame'); }catch(e){}
+    window.unmuteGame?.(); window.resumeGame?.();
+  },
+  async rewarded(){
+    if (this._env === 'disabled') return false;
+    window.muteGame?.(); window.pauseGame?.();
+    try{ await window.CrazyGames.SDK.ad.requestAd('rewarded'); window.unmuteGame?.(); window.resumeGame?.(); return true; }
+    catch(e){ window.unmuteGame?.(); window.resumeGame?.(); return false; }
+  },
+  async submitScore(v){ try{ await window.CrazyGames.SDK.data.submitScore(v); }catch(e){} },
+  lang(){ return window.CrazyGames?.SDK?.user?.systemInfo?.countryCode?.split('-')[0] || 'en' },
+  happy(){ window.CrazyGames?.SDK?.game?.happytime?.(); }
+};
+
+const GameDistributionAdapter = {
+  ...NoopAdapter,
+  async init(){
+    if (!window.gdsdk) return;
+    window.gdsdk.SDK_GAME_PAUSE = () => { window.muteGame?.(); window.pauseGame?.(); };
+    window.gdsdk.SDK_GAME_START = () => { window.unmuteGame?.(); window.resumeGame?.(); };
+    window.gdsdk.SDK_REWARDED_WATCH_COMPLETE = () => { window.grantReward?.(); };
+  },
+  async interstitial(){ try{ await window.gdsdk?.showAd('interstitial'); }catch(e){} },
+  async rewarded(){ return new Promise(r=>{ try{ window.grantReward = ()=>r(true); window.gdsdk?.showAd('rewarded'); setTimeout(()=>r(false), 30000); }catch(e){r(false)} }); }
+};
+
+const GamePixAdapter = {
+  ...NoopAdapter,
+  async init(){
+    if (!window.GamePix) return;
+    window.GamePix.gameLoading();
+    window.GamePix.on?.pause?.(()=>{ window.muteGame?.(); window.pauseGame?.(); });
+    window.GamePix.on?.resume?.(()=>{ window.unmuteGame?.(); window.resumeGame?.(); });
+  },
+  loadingDone(){ window.GamePix?.gameLoaded?.(()=> window.startMenuAndAudio?.()); },
+  async interstitial(){ try{ window.__lastScore = window.__score || 0; await window.GamePix?.ping?.('game_over'); }catch(e){} },
+  async save(k,v){ try{ window.GamePix?.localStorage?.setItem(k,v); }catch(e){} },
+  async load(k){ try{ return window.GamePix?.localStorage?.getItem(k); }catch(e){return null} },
+  lang(){ return window.GamePix?.lang?.() || 'en'; }
+};
+
+const PlaygamaAdapter = {
+  ...NoopAdapter,
+  async init(){
+    if (!window.bridge) return;
+    await window.bridge.initialize();
+    await window.bridge.game.sendMessage('game_ready');
+  },
+  async interstitial(){
+    if (!window.bridge?.advertisement) return;
+    return new Promise(r=>{
+      const off = window.bridge.advertisement.on('interstitial_state_changed', s=>{
+        if (s==='opened'){ window.muteGame?.(); window.pauseGame?.(); }
+        if (s==='closed'||s==='failed'){ window.unmuteGame?.(); window.resumeGame?.(); off?.(); r(); }
+      });
+      window.bridge.advertisement.showInterstitial();
+    });
+  },
+  async rewarded(){
+    if (!window.bridge?.advertisement) return false;
+    return new Promise(r=>{
+      let rewarded = false;
+      const off = window.bridge.advertisement.on('rewarded_state_changed', s=>{
+        if (s==='opened'){ window.muteGame?.(); window.pauseGame?.(); }
+        if (s==='rewarded') rewarded = true;
+        if (s==='closed'||s==='failed'){ window.unmuteGame?.(); window.resumeGame?.(); off?.(); r(rewarded); }
+      });
+      window.bridge.advertisement.showRewarded();
+    });
+  },
+  async save(k,v){ try{ await window.bridge?.storage?.set(k,v); }catch(e){} },
+  async load(k){ try{ return await window.bridge?.storage?.get(k); }catch(e){return null} }
+};
+
+const ADAPTERS = {
+  crazygames: CrazyGamesAdapter, gamepix: GamePixAdapter,
+  playgama: PlaygamaAdapter, gamedistribution: GameDistributionAdapter
+};
+const Platform = ADAPTERS[window.__PLATFORM__] || NoopAdapter;
+window.Platform = Platform;
+
+// ========== HOOKS THAT ADAPTERS CALL ==========
+window.muteGame = () => { if (window.__game?.sound) window.__game.sound.mute = true; };
+window.unmuteGame = () => { if (window.__game?.sound) window.__game.sound.mute = false; };
+window.pauseGame = () => { window.__game?.scene?.getScenes(true)?.[0]?.scene?.pause(); };
+window.resumeGame = () => { window.__game?.scene?.getScenes(true)?.[0]?.scene?.resume(); };
+window.startMenuAndAudio = () => { window.__game?.sound && (window.__game.sound.mute = false); };
+window.grantReward = () => { /* set per-game reward flag */ };
+
+// ========== GAME ({{MECHANIC_ID}}) ==========
+// This block gets replaced per-mechanic by the scheduler. Default = simple one-tap flapper.
+
+{{MECHANIC_JS}}
+
+// ========== BOOT ==========
+(async () => {
+  document.getElementById('bar-fill').style.width = '30%';
+  await Platform.init();
+  document.getElementById('bar-fill').style.width = '60%';
+  Platform.loadingProgress(60);
+  window.__game = new Phaser.Game(GAME_CONFIG);
+  document.getElementById('bar-fill').style.width = '100%';
+  Platform.loadingDone();
+  setTimeout(() => { document.getElementById('splash').style.display = 'none'; Platform.gameReady(); }, 400);
+})();
+</script>
+</body>
+</html>
